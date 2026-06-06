@@ -32,3 +32,8 @@
 * **아키텍처 (Architecture)**: 외부 라이브러리나 프레임워크(React, Vue 등) 의존성이 전혀 없는 No-Dependency 기반의 순수 HTML5, CSS3, Vanilla JavaScript(ES6+) 구조입니다. 단일 파일(Single File) 내에서 상태 기반 UI 렌더링이 이루어집니다.
 * **UI/UX 디자인**: 미디어 쿼리를 통한 반응형 웹 디자인(Responsive Web Design)이 적용되어 있으며, 모바일 환경에서의 오작동을 방지하기 위해 뷰포트 확대/축소가 고정되어 있습니다. CSS 변수(CSS Variables) 체계를 기반으로 설계되어 전역 라이트/다크 테마 전환이 가능합니다.
 * **성능 최적화 (Performance)**: 모바일 및 저사양 기기에서의 부드러운 구동을 위해 렌더링 부하가 큰 웹 필터 연산을 배제하고, 브라우저의 GPU 가속 레이어를 활용하는 transform 속성 위주로 애니메이션과 인터랙션을 제어합니다.
+
+## 📄 License
+
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+Copyright (c) 2026 **linuse765**
