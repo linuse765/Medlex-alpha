@@ -1351,7 +1351,7 @@ body {
 
   <!-- ── 헤더 ── -->
   <header class="header">
-    <div class="header-logo" id="header-logo">MedLex <span>V-index</span></div>
+    <div class="header-logo">MedLex <span>V-index</span></div>
     <!-- UX-12: 🗒️ 로그/기록 버튼 추가 (순서: 🗒️ → 💾 → ⚙️) -->
     <button class="icon-btn" id="logBtn" title="패치노트 및 피드백" style="position:relative">
       🗒️
@@ -1407,8 +1407,8 @@ body {
 
       <!-- UX-15: 모드 선택 (외우기 / 퀴즈) -->
       <div class="mode-selector study-type-section">
-        <button class="mode-btn" id="modeMemoBtn" onclick="setStudyMode('memo')">📖 외우기</button>
-        <button class="mode-btn active" id="modeQuizBtn" onclick="setStudyMode('quiz')">✏️ 퀴즈</button>
+        <button class="mode-btn active" id="modeMemoBtn" onclick="setStudyMode('memo')">📖 외우기</button>
+        <button class="mode-btn" id="modeQuizBtn" onclick="setStudyMode('quiz')">✏️ 퀴즈</button>
       </div>
 
       <!-- 퀴즈 전용 옵션 (외우기 모드에서 숨김) -->
@@ -2175,28 +2175,6 @@ body {
   </div>
 </div>
 
-
-  <!-- ══════════════════════════════════════
-       툴팁 투어 오버레이
-  ══════════════════════════════════════ -->
-  <div id="tour-overlay">
-    <div id="tour-highlight"></div>
-    <div id="tour-tooltip">
-      <div class="tour-step-label" id="tour-step-label">1 / 7</div>
-      <div class="tour-title" id="tour-title"></div>
-      <div class="tour-desc" id="tour-desc"></div>
-      <div class="tour-actions">
-        <button class="tour-skip" id="tour-skip">건너뛰기</button>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
-          <div class="tour-progress" id="tour-progress"></div>
-          <div class="tour-btns">
-            <button class="tour-btn-prev" id="tour-prev">이전</button>
-            <button class="tour-btn-next" id="tour-next">다음 →</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 
 <script>
 // ═══════════════════════════════════════════════════════════════
@@ -3084,12 +3062,6 @@ function saveAll() {
   localStorage.setItem('medlex_theme', theme);
   localStorage.setItem('medlex_layout', layoutMode);
   localStorage.setItem('medlex_showbadges', showShortcutBadges ? '1' : '0');
-
-  localStorage.setItem('medlex_quizConfig', JSON.stringify({
-  type: quizConfig.type, dir: quizConfig.dir,
-  count: quizConfig.count, pool: quizConfig.pool,
-  smartMode: quizConfig.smartMode,
-}));
 }
 // 하위 호환 alias (기존 save() 호출부 유지)
 function save() {
@@ -3130,18 +3102,6 @@ function load() {
       quizConfig.smartMode = parsed.smartMode ?? quizConfig.smartMode;
     } catch { /* 파싱 실패 시 기본값 유지 */ }
   }
-
-  // quizConfig UI 버튼 동기화
-['type','dir','count','pool'].forEach(group => {
-  const val = quizConfig[group];
-  (_optionGroupCache[group] || document.querySelectorAll(`[data-group="${group}"]`))
-    .forEach(b => b.classList.toggle('selected', b.dataset.val === val));
-});
-document.getElementById('smartCheckbox').style.background = quizConfig.smartMode ? 'var(--accent)' : '';
-document.getElementById('smartCheckbox').style.borderColor = quizConfig.smartMode ? 'var(--accent)' : '';
-document.getElementById('smartCheckbox').textContent = quizConfig.smartMode ? '✓' : '';
-document.getElementById('smartModeToggle').classList.toggle('checked', quizConfig.smartMode);
-
   // LOGIC-02: 정렬 드롭다운 복원
   if (sortVal) {
     const sel = document.getElementById('sortSelect');
@@ -5598,7 +5558,7 @@ document.getElementById('feedbackSaveBtn').addEventListener('click', () => {
 
 
 // ═══════════════════════════════════════════════════════════════
-// ── 툴팁 투어
+// ── 툴팁 투어 (동적 생성 방식)
 // ═══════════════════════════════════════════════════════════════
 const TOUR_KEY = 'medlex_tour_done';
 
@@ -5624,13 +5584,13 @@ const TOUR_STEPS = [
   {
     target: 'navStudy',
     title: '학습 탭 ✏️',
-    desc: '플래시카드, 4지선다, 빈칸채우기 세 가지 방식으로 학습해요. 특수 알고리즘 적용되어 취약한 단어를 우선 출제해요.(on/off 가능)',
+    desc: '플래시카드, 4지선다, 빈칸채우기 세 가지 방식으로 학습해요. BKT 알고리즘이 취약한 단어를 우선 출제해요.',
     position: 'top',
   },
   {
     target: 'navStats',
     title: '통계 탭 📊',
-    desc: '학습 현황, 정답률, 연속 학습일 등을 확인할 수 있어요. 얼마나 외웠는지 한눈에 보여요.',
+    desc: '학습 현황, 정답률, 연속 학습일 등을 확인할 수 있어요.',
     position: 'top',
   },
   {
@@ -5642,7 +5602,7 @@ const TOUR_STEPS = [
   {
     target: 'settingsBtn',
     title: '설정 ⚙️',
-    desc: '다크모드, 단축키, 데이터 내보내기/가져오기, 저장소 연결 등을 여기서 설정해요.',
+    desc: '다크모드, 단축키, 데이터 내보내기/가져오기 등을 여기서 설정해요.',
     position: 'bottom',
     isLast: true,
   },
@@ -5650,105 +5610,128 @@ const TOUR_STEPS = [
 
 let _tourStep = 0;
 let _tourActive = false;
+let _tourEl = null;
 
 function tourStart(force = false) {
   if (!force && localStorage.getItem(TOUR_KEY)) return;
+  if (_tourEl) { _tourEl.remove(); _tourEl = null; }
+
+  // DOM 동적 생성
+  _tourEl = document.createElement('div');
+  _tourEl.id = 'tour-overlay';
+  _tourEl.style.cssText = 'position:fixed;inset:0;z-index:9999;pointer-events:all;';
+  _tourEl.innerHTML = `
+    <div id="tour-highlight" style="position:fixed;z-index:10000;border-radius:10px;pointer-events:none;transition:all 0.35s cubic-bezier(0.4,0,0.2,1);"></div>
+    <div id="tour-tooltip" style="position:fixed;z-index:10001;background:var(--surface);border:1.5px solid var(--accent2);border-radius:var(--radius);padding:16px 18px;max-width:280px;box-shadow:0 8px 32px rgba(0,0,0,0.18);animation:tooltipPop 0.25s cubic-bezier(0.34,1.56,0.64,1);">
+      <div id="tour-step-label" style="font-size:10px;font-weight:600;letter-spacing:1px;color:var(--accent2);text-transform:uppercase;margin-bottom:6px;"></div>
+      <div id="tour-title" style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px;"></div>
+      <div id="tour-desc" style="font-size:13px;color:var(--text2);line-height:1.6;"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;gap:8px;">
+        <button id="tour-skip" style="font-size:12px;color:var(--text3);background:none;border:none;cursor:pointer;padding:4px;text-decoration:underline;font-family:inherit;">건너뛰기</button>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
+          <div id="tour-progress" style="display:flex;gap:4px;align-items:center;"></div>
+          <div style="display:flex;gap:8px;">
+            <button id="tour-prev" style="padding:7px 14px;font-size:12px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;font-family:inherit;">이전</button>
+            <button id="tour-next" style="padding:7px 18px;font-size:13px;font-weight:500;border-radius:var(--radius-sm);border:none;background:var(--accent);color:#fff;cursor:pointer;font-family:inherit;">다음 →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(_tourEl);
+
+  // 이벤트 바인딩 (생성 직후)
+  _tourEl.querySelector('#tour-next').addEventListener('click', () => {
+    if (_tourStep >= TOUR_STEPS.length - 1) { tourEnd(); return; }
+    _tourStep++; tourRender();
+  });
+  _tourEl.querySelector('#tour-prev').addEventListener('click', () => {
+    if (_tourStep <= 0) return;
+    _tourStep--; tourRender();
+  });
+  _tourEl.querySelector('#tour-skip').addEventListener('click', tourEnd);
+  _tourEl.addEventListener('click', e => {
+    if (e.target === _tourEl) {
+      if (_tourStep >= TOUR_STEPS.length - 1) { tourEnd(); return; }
+      _tourStep++; tourRender();
+    }
+  });
+
   _tourStep = 0;
   _tourActive = true;
-  const overlay = document.getElementById('tour-overlay');
-  overlay.style.display = '';       // display:none 초기화
-  overlay.style.opacity = '';
-  overlay.style.pointerEvents = '';
-  overlay.classList.add('active');
   tourRender();
 }
 
 function tourEnd() {
   _tourActive = false;
   localStorage.setItem(TOUR_KEY, '1');
-  const overlay  = document.getElementById('tour-overlay');
-  const hl       = document.getElementById('tour-highlight');
-  const tooltip  = document.getElementById('tour-tooltip');
-
-  // 페이드 아웃
-  overlay.style.transition  = 'opacity 0.2s';
-  overlay.style.opacity     = '0';
-  overlay.style.pointerEvents = 'none'; // 즉시 클릭 차단 해제
-
-  setTimeout(() => {
-    overlay.classList.remove('active');
-    overlay.style.display    = 'none';  // 완전히 숨김
-    overlay.style.opacity    = '';
-    overlay.style.transition = '';
-    hl.style.cssText         = '';      // highlight 인라인 스타일 초기화
-    tooltip.style.cssText    = '';      // tooltip 인라인 스타일 초기화
-  }, 220);
-
+  if (_tourEl) {
+    _tourEl.style.transition = 'opacity 0.2s';
+    _tourEl.style.opacity = '0';
+    setTimeout(() => {
+      if (_tourEl) { _tourEl.remove(); _tourEl = null; }
+    }, 220);
+  }
   showToast('투어 완료! 언제든 설정에서 다시 볼 수 있어요 😄');
 }
 
 function tourRender() {
+  if (!_tourEl) return;
   const step = TOUR_STEPS[_tourStep];
   const total = TOUR_STEPS.length;
 
-  // 텍스트 업데이트
-  document.getElementById('tour-step-label').textContent = `${_tourStep + 1} / ${total}`;
-  document.getElementById('tour-title').textContent = step.title;
-  document.getElementById('tour-desc').textContent = step.desc;
-  document.getElementById('tour-prev').style.display = _tourStep === 0 ? 'none' : '';
-  document.getElementById('tour-next').textContent = step.isLast ? '완료 🎉' : '다음 →';
+  _tourEl.querySelector('#tour-step-label').textContent = `${_tourStep + 1} / ${total}`;
+  _tourEl.querySelector('#tour-title').textContent = step.title;
+  _tourEl.querySelector('#tour-desc').textContent = step.desc;
+  _tourEl.querySelector('#tour-prev').style.display = _tourStep === 0 ? 'none' : '';
+  _tourEl.querySelector('#tour-next').textContent = step.isLast ? '완료 🎉' : '다음 →';
 
-  // 진행 점 업데이트
-  const prog = document.getElementById('tour-progress');
+  // 진행 점
+  const prog = _tourEl.querySelector('#tour-progress');
   prog.innerHTML = '';
   for (let i = 0; i < total; i++) {
     const dot = document.createElement('div');
-    dot.className = 'tour-dot' + (i === _tourStep ? ' active' : '');
+    dot.style.cssText = `width:${i === _tourStep ? 14 : 5}px;height:5px;border-radius:${i === _tourStep ? 3 : 50}px;background:${i === _tourStep ? 'var(--accent2)' : 'var(--border)'};transition:all 0.2s;`;
     prog.appendChild(dot);
   }
 
-  // 타깃 요소 하이라이트
+  // 하이라이트
   const targetEl = document.getElementById(step.target);
-  if (!targetEl) { tourPositionTooltip(null, step.position); return; }
-
-  const rect = targetEl.getBoundingClientRect();
-  const pad = 6;
-  const hl = document.getElementById('tour-highlight');
-  hl.style.left   = (rect.left - pad) + 'px';
-  hl.style.top    = (rect.top - pad) + 'px';
-  hl.style.width  = (rect.width + pad * 2) + 'px';
-  hl.style.height = (rect.height + pad * 2) + 'px';
-  hl.style.opacity = '1';
-
-  tourPositionTooltip(rect, step.position);
+  const hl = _tourEl.querySelector('#tour-highlight');
+  if (targetEl) {
+    const rect = targetEl.getBoundingClientRect();
+    const pad = 6;
+    hl.style.left   = (rect.left - pad) + 'px';
+    hl.style.top    = (rect.top - pad) + 'px';
+    hl.style.width  = (rect.width + pad * 2) + 'px';
+    hl.style.height = (rect.height + pad * 2) + 'px';
+    hl.style.boxShadow = '0 0 0 9999px rgba(0,0,0,0.55), 0 0 0 3px var(--accent2)';
+    tourPositionTooltip(rect, step.position);
+  } else {
+    hl.style.boxShadow = '0 0 0 9999px rgba(0,0,0,0.55)';
+    tourPositionTooltip(null, 'center');
+  }
 }
 
 function tourPositionTooltip(rect, position) {
-  const tip = document.getElementById('tour-tooltip');
-  const tipH = 180; // 예상 높이
+  if (!_tourEl) return;
+  const tip = _tourEl.querySelector('#tour-tooltip');
+  const tipH = 180;
   const tipW = Math.min(280, window.innerWidth - 40);
-  const margin = 16;
-  const pad = 6;
-
+  const margin = 16, pad = 6;
   let top, left;
 
-  if (!rect) {
+  if (!rect || position === 'center') {
     top  = window.innerHeight / 2 - tipH / 2;
     left = window.innerWidth  / 2 - tipW / 2;
   } else if (position === 'bottom') {
     top  = rect.bottom + pad + margin;
     left = Math.max(margin, Math.min(window.innerWidth - tipW - margin, rect.left + rect.width / 2 - tipW / 2));
-    // 화면 아래 넘치면 위로
-    if (top + tipH > window.innerHeight - margin) {
-      top = rect.top - pad - margin - tipH;
-    }
-  } else { // top
+    if (top + tipH > window.innerHeight - margin) top = rect.top - pad - margin - tipH;
+  } else {
     top  = rect.top - pad - margin - tipH;
     left = Math.max(margin, Math.min(window.innerWidth - tipW - margin, rect.left + rect.width / 2 - tipW / 2));
-    // 화면 위 넘치면 아래로
-    if (top < margin) {
-      top = rect.bottom + pad + margin;
-    }
+    if (top < margin) top = rect.bottom + pad + margin;
   }
 
   tip.style.top   = Math.max(margin, top) + 'px';
@@ -5756,39 +5739,20 @@ function tourPositionTooltip(rect, position) {
   tip.style.width = tipW + 'px';
 }
 
-function initTourEvents() {
-  document.getElementById('tour-next').addEventListener('click', () => {
-    if (_tourStep >= TOUR_STEPS.length - 1) { tourEnd(); return; }
-    _tourStep++;
-    tourRender();
-  });
-  document.getElementById('tour-prev').addEventListener('click', () => {
-    if (_tourStep <= 0) return;
-    _tourStep--;
-    tourRender();
-  });
-  document.getElementById('tour-skip').addEventListener('click', tourEnd);
-  document.getElementById('tour-overlay').addEventListener('click', e => {
-    if (e.target === document.getElementById('tour-overlay')) {
-      if (_tourStep >= TOUR_STEPS.length - 1) { tourEnd(); return; }
-      _tourStep++;
-      tourRender();
-    }
-  });
-  document.addEventListener('keydown', e => {
-    if (!_tourActive) return;
-    if (e.key === 'Escape') { tourEnd(); e.stopPropagation(); }
-    if (e.key === 'ArrowRight') {
-      if (_tourStep >= TOUR_STEPS.length - 1) tourEnd();
-      else { _tourStep++; tourRender(); }
-      e.preventDefault();
-    }
-    if (e.key === 'ArrowLeft') {
-      if (_tourStep > 0) { _tourStep--; tourRender(); }
-      e.preventDefault();
-    }
-  });
-}
+// ESC / 화살표 키
+document.addEventListener('keydown', e => {
+  if (!_tourActive) return;
+  if (e.key === 'Escape') { tourEnd(); e.stopPropagation(); }
+  if (e.key === 'ArrowRight') {
+    e.preventDefault();
+    if (_tourStep >= TOUR_STEPS.length - 1) tourEnd();
+    else { _tourStep++; tourRender(); }
+  }
+  if (e.key === 'ArrowLeft') {
+    e.preventDefault();
+    if (_tourStep > 0) { _tourStep--; tourRender(); }
+  }
+});
 
 // ═══════════════════════════════════════════════════════════════
 // ── 초기화
@@ -5800,7 +5764,6 @@ renderFolderSelects();
 updateShortcutBadges();
 initAnalyzeTabs();
 initLogBadge(); // UX-12: 첫 실행 시 패치노트 뱃지 표시
-initTourEvents();
 
 // 툴팁 투어 — 첫 방문자에게만 자동 실행
 setTimeout(() => tourStart(), 800);
